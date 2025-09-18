@@ -1,0 +1,7 @@
+name: Setup WordPress
+  hosts: all
+  gather_facts: yes
+    
+
+  roles:
+    - wordpress
