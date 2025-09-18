@@ -1,25 +1,45 @@
-# .github/workflows/ansible.yaml
 name: Run Ansible
  
 on:
   push:
     branches: ["*"]
 
-    
 jobs:
-  ansible:
+  release:
     runs-on: ubuntu-latest
     steps:
- 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref || github.ref_name }}
-
- 
       - uses: webfactory/ssh-agent@v0.5.2
         if: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') }}
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+     
+      - name: Ansible
+        if: ${{ (github.ref_name == 'dev' || github.ref_name == 'main') }}
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          # Required, playbook filepath
+          playbook: site.yml
+          # Optional, directory where playbooks live
+          directory: ./ansible
+          # Optional, ansible configuration file content (ansible.cfg)
+          configuration: |
+            [defaults]
+            callbacks_enabled = ansible.posix.profile_tasks, ansible.posix.timer
+            stdout_callback = yaml
+            nocows = false
+          # Optional, galaxy requirements filepath
+          requirements: requirements.yml
+          # Optional, additional flags to pass to ansible-playbook
+          options: |
+            --inventory inventory.yml
+            --extra-vars gh_user=${{ github.actor }}
+            --extra-vars gh_token=${{ secrets.GITHUB_TOKEN }}
+            --verbose
+            --extra-vars wordpress_db_password=${{ secrets.WORDPRESS_DB_PASSWORD }}
+            --diff
