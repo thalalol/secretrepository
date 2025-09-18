@@ -3,3 +3,6 @@ roles:
   - name: wordpress
     src: https://github.com/camptocamp/ansible-course-app.git
     version: single-role
+
+collections:
+  - name: community.mysql
